@@ -12,6 +12,8 @@ def query_whois(tld, domain):
         return None
 
     try:
+        temp_arr = domain.split('.')
+        domain = temp_arr[-2] + '.' + temp_arr[-1]
         msg = (domain + '\r\n').encode()
         s.send(msg)
     except TypeError as err:
@@ -49,12 +51,15 @@ if __name__ == "__main__":
         for domain in args:
             d_arr = domain.split('.')
             if len(d_arr) < 2:
-                print("Wrong format for domain. i.e. www.example.com")
+                print("Wrong format for domain: " + domain)
+                print("Format should be: 'www.example.com' OR 'example.com'\n")
                 continue
 
             tld = d_arr[-1]
             if tld.upper() not in tld_list:
-                print("TLD does not exist.")
+                print("TLD does not exist.\n")
+            elif tld.upper() == 'GOV':
+                print("Domains with .gov TLD can not expire.\n")
             else:
                 whois_data = query_whois(tld, domain)
                 if not whois_data:
@@ -66,12 +71,11 @@ if __name__ == "__main__":
                         data_arr = whois_data.split('\n')
                         expire_str = data_arr[6].strip()
                         date = datetime.datetime.strptime(expire_str.split(' ')[-1], "%Y-%m-%dT%H:%M:%SZ")
-                        print("Domain " + domain + " expires on "  + str(date))
+                        print("Domain " + domain + " expires on "  + str(date) + "\n")
                     except TypeError as err:
-                        print("Error getting date from whois data.\nResponse from whois server below:")
-                        print(whois_data)
-                        print(err)
+                        print("Error: " + str(err) + '\n')
+                    except:
+                        print("Error getting date from whois data.\nResponse from whois server: " + whois_data.split('\n')[0] + '\n')
 
                 else:
-                    print("Domain expiration date could not be found.\nResponse from whois server below:")
-                    print(whois_data)
+                    print("Domain expiration date could not be found.\nResponse from whois server: " + whois_data.split('\n')[0] + '\n')
